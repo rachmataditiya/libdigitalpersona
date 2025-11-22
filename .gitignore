@@ -1,0 +1,35 @@
+# Build artifacts
+build/
+lib/
+*.o
+*.so
+*.so.*
+*.a
+moc_*.cpp
+moc_*.h
+moc_predefs.h
+
+# Qt generated files
+Makefile
+.qmake.stash
+
+# IDE files
+*.pro.user
+*.pro.user.*
+.qtcreator/
+
+# pkg-config
+pkgconfig/
+
+# Examples binaries
+examples/simple_enrollment
+examples/simple_verification
+examples/*.o
+examples/Makefile
+examples/moc_*
+
+# Temp files
+*~
+*.bak
+*.tmp
+
