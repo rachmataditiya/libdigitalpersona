@@ -480,6 +480,99 @@ void FingerprintManager::cancelEnrollment()
     }
 }
 
+int FingerprintManager::identifyUser(const QMap<int, QByteArray>& userTemplates, int& score)
+{
+    if (!m_device) {
+        setError("Device not open");
+        return -1;
+    }
+
+    if (userTemplates.isEmpty()) {
+        setError("No users to identify against");
+        return -1;
+    }
+
+    // Prepare gallery
+    GPtrArray* gallery = g_ptr_array_new_with_free_func(g_object_unref);
+    QMap<FpPrint*, int> printToIdMap;
+
+    // Loop through templates
+    QMapIterator<int, QByteArray> i(userTemplates);
+    while (i.hasNext()) {
+        i.next();
+        int userId = i.key();
+        const QByteArray& data = i.value();
+
+        GError* error = nullptr;
+        FpPrint* print = fp_print_deserialize((const guchar*)data.constData(), data.size(), &error);
+        if (error) {
+            qWarning() << "Skipping invalid template for user" << userId << ":" << error->message;
+            g_error_free(error);
+            continue;
+        }
+        
+        g_ptr_array_add(gallery, print); // print is owned by gallery now
+        printToIdMap.insert(print, userId);
+    }
+
+    if (gallery->len == 0) {
+        setError("No valid templates loaded");
+        g_ptr_array_unref(gallery);
+        return -1;
+    }
+
+    qDebug() << "=== IDENTIFICATION STARTED ===";
+    qDebug() << "Gallery size:" << gallery->len;
+    qDebug() << "Please place your finger on the reader...";
+
+    GError* error = nullptr;
+    FpPrint* matchPrint = nullptr;
+    FpPrint* newPrint = nullptr;
+    
+    // Identify - capture and match against gallery
+    gboolean result = fp_device_identify_sync(
+        m_device,
+        gallery,
+        nullptr, // cancellable
+        nullptr, // match_cb
+        nullptr, // match_data
+        &matchPrint, // return matching print
+        &newPrint,   // return new print
+        &error
+    );
+
+    int matchedUserId = -1;
+    score = 0;
+
+    if (error) {
+        if (error->domain == FP_DEVICE_ERROR && error->code == FP_DEVICE_ERROR_DATA_NOT_FOUND) {
+            qDebug() << "Identify: No match found (DATA_NOT_FOUND)";
+        } else {
+            QString errorMsg = QString("Identification failed: %1").arg(error->message);
+            setError(errorMsg);
+            qWarning() << errorMsg;
+        }
+        g_error_free(error);
+    } else if (matchPrint) {
+        // Found a match!
+        if (printToIdMap.contains(matchPrint)) {
+            matchedUserId = printToIdMap.value(matchPrint);
+            score = 95; // High confidence match
+            qDebug() << "✓ IDENTIFICATION MATCH: User ID" << matchedUserId;
+        } else {
+            qWarning() << "Match returned but not found in map!";
+        }
+    } else {
+        qDebug() << "Identification completed: No match found.";
+    }
+
+    // Cleanup
+    if (newPrint) g_object_unref(newPrint);
+    g_ptr_array_unref(gallery);
+
+    return matchedUserId;
+}
+
 bool FingerprintManager::verifyFingerprint(const QByteArray& templateData, int& score)
 {
     if (!m_device) {
