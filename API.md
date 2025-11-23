@@ -253,6 +253,37 @@ if (matched && score >= 60) {
 
 ---
 
+### Identification Methods
+
+#### `identifyUser()`
+
+```cpp
+int identifyUser(const QMap<int, QByteArray>& userTemplates, int& matchScore)
+```
+
+Identify a fingerprint against a collection of templates (1:N matching).
+
+**Parameters:**
+- `userTemplates` - Map of User ID -> Fingerprint Template
+- `matchScore` - [out] Match score of the best match (0-100)
+
+**Returns:** User ID of the matching template, or `-1` if no match found.
+
+**Example:**
+```cpp
+QMap<int, QByteArray> templates = dbManager.getAllTemplates();
+int score = 0;
+int userId = fpManager.identifyUser(templates, score);
+
+if (userId != -1) {
+    qInfo() << "Identified User ID:" << userId << "Score:" << score;
+} else {
+    qWarning() << "No match found.";
+}
+```
+
+---
+
 ### Error Handling
 
 #### `getLastError()`

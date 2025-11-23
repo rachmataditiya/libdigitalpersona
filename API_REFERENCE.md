@@ -552,6 +552,31 @@ bool matched = fpManager.verifyFingerprint(fpTemplate, score);
 
 ---
 
+### Identification Operations
+
+#### `int identifyUser(const QMap<int, QByteArray>& userTemplates, int& matchScore)`
+
+Identify a fingerprint against a collection of templates (1:N matching).
+
+**Parameters:**
+- `userTemplates`: Map of User ID -> Fingerprint Template
+- `matchScore` [out]: Match score of the best match (0-100)
+
+**Returns:** User ID of the matching template, or `-1` if no match found.
+
+**Example:**
+```cpp
+QMap<int, QByteArray> templates = db.loadAllTemplates();
+int score = 0;
+int userId = fpManager.identifyUser(templates, score);
+
+if (userId != -1) {
+    qDebug() << "User identified:" << userId;
+}
+```
+
+---
+
 ### Error Handling
 
 #### `QString getLastError() const`
