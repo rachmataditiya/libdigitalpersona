@@ -213,15 +213,19 @@ public:
     // ========== Identification Operations ==========
 
     /**
-     * @brief Identify a fingerprint against a list of templates (1:N match)
+     * @brief Identify a fingerprint against a list of templates (1:N match) with progress reporting
      * 
      * Captures a fingerprint once and compares it against all provided templates.
      * 
      * @param userTemplates Map of UserID -> TemplateData
      * @param[out] score Match score of the best match
-     * @return User ID of the match, or -1 if no match found
+     * @param progressCallback Optional callback for reporting identification progress (current, total)
+     * @param checkCancelCallback Optional callback to check if operation should be cancelled
+     * @return User ID of the match, or -1 if no match found or cancelled
      */
-    int identifyUser(const QMap<int, QByteArray>& userTemplates, int& score);
+    int identifyUser(const QMap<int, QByteArray>& userTemplates, int& score, 
+                    std::function<void(int, int)> progressCallback = nullptr,
+                    std::function<bool()> checkCancelCallback = nullptr);
     
     // ========== Error Handling ==========
     

@@ -47,6 +47,14 @@ if (fpManager.verifyFingerprint(templateData, score) && score >= 60) {
     qDebug() << "✓ Match!";
 }
 
+// Identify (1:N)
+QMap<int, QByteArray> gallery;
+// ... load all templates into gallery ...
+int userId = fpManager.identifyUser(gallery, score);
+if (userId != -1) {
+    qDebug() << "✓ Identified User ID:" << userId;
+}
+
 // Cleanup
 fpManager.closeReader();
 fpManager.cleanup();
@@ -98,7 +106,7 @@ int quality;
 fpManager.addEnrollmentSample(msg, quality); // Blocks until complete
 ```
 
-### Use Case 3: Verification
+### Use Case 3: Verification (1:1)
 
 ```cpp
 // Load from your database
@@ -110,6 +118,23 @@ bool matched = fpManager.verifyFingerprint(templateData, score);
 
 if (matched && score >= 60) {
     qDebug() << "✓ User verified!";
+}
+```
+
+### Use Case 4: Identification (1:N)
+
+```cpp
+// Load all templates
+QMap<int, QByteArray> templates = myDatabase.loadAllTemplates();
+
+// Identify
+int score;
+int userId = fpManager.identifyUser(templates, score);
+
+if (userId != -1) {
+    qDebug() << "✓ User identified:" << userId << "(Score:" << score << ")";
+} else {
+    qDebug() << "✗ No match found";
 }
 ```
 
