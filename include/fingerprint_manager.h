@@ -5,6 +5,7 @@
 #include <QString>
 #include <QByteArray>
 #include <QVector>
+#include <QMap>
 #include <QImage>
 #include <QDateTime>
 #include <functional>
@@ -208,6 +209,19 @@ public:
      * @return true if fingerprint matches, false otherwise
      */
     bool verifyFingerprint(const FingerprintTemplate& fpTemplate, int& score);
+
+    // ========== Identification Operations ==========
+
+    /**
+     * @brief Identify a fingerprint against a list of templates (1:N match)
+     * 
+     * Captures a fingerprint once and compares it against all provided templates.
+     * 
+     * @param userTemplates Map of UserID -> TemplateData
+     * @param[out] score Match score of the best match
+     * @return User ID of the match, or -1 if no match found
+     */
+    int identifyUser(const QMap<int, QByteArray>& userTemplates, int& score);
     
     // ========== Error Handling ==========
     
