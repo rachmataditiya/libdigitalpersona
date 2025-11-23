@@ -5,7 +5,8 @@ A Qt-based C++ library for integrating DigitalPersona U.are.U fingerprint reader
 ## Features
 
 - ✅ **Fingerprint Enrollment**: Multi-stage (5 scans) enrollment process
-- ✅ **Fingerprint Verification**: Match fingerprints against stored templates
+- ✅ **Fingerprint Verification**: Match fingerprints against stored templates (1:1)
+- ✅ **Fingerprint Identification**: Identify user from a list of templates (1:N)
 - ✅ **Database Integration**: SQLite database for user and template management
 - ✅ **Qt Integration**: Full Qt6 support with signals/slots
 - ✅ **libfprint Backend**: Native Linux support via libfprint-2
@@ -160,6 +161,27 @@ if (matched && matchScore >= 60) {
 }
 ```
 
+### Identification Example
+
+```cpp
+// Load all templates
+QVector<User> users = dbManager.getAllUsers();
+QMap<int, QByteArray> templates;
+for (const auto& u : users) {
+    templates.insert(u.id, u.fingerprintTemplate);
+}
+
+// Identify user
+int score = 0;
+int userId = fpManager.identifyUser(templates, score);
+
+if (userId != -1) {
+    qInfo() << "User identified! ID:" << userId << "Score:" << score;
+} else {
+    qWarning() << "No match found";
+}
+```
+
 ## API Reference
 
 ### FingerprintManager
@@ -175,7 +197,8 @@ if (matched && matchScore >= 60) {
 | `int addEnrollmentSample(QString& msg, int& quality)` | Capture enrollment samples (returns 1 when complete) |
 | `bool createEnrollmentTemplate(QByteArray& data)` | Generate template from enrollment |
 | `void cancelEnrollment()` | Cancel ongoing enrollment |
-| `bool verifyFingerprint(const QByteArray& template, int& score)` | Verify fingerprint against template |
+| `bool verifyFingerprint(const QByteArray& template, int& score)` | Verify fingerprint against template (1:1) |
+| `int identifyUser(const QMap<int, QByteArray>& templates, int& score)` | Identify user from a list of templates (1:N) |
 | `QString getLastError()` | Get last error message |
 
 ### DatabaseManager
