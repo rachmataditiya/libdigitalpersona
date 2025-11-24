@@ -151,6 +151,13 @@ public:
     bool createEnrollmentTemplate(QByteArray& templateData);
     
     /**
+     * @brief Capture raw fingerprint image (for storage alongside template)
+     * @param[out] imageData Output buffer for raw image data (384x290 grayscale)
+     * @return true on success, false on failure
+     */
+    bool captureRawImage(QByteArray& imageData);
+    
+    /**
      * @brief Create fingerprint template with metadata
      * @param[out] fpTemplate Output FingerprintTemplate structure
      * @return true on success, false on failure
@@ -216,14 +223,16 @@ public:
      * @brief Identify a fingerprint against a list of templates (1:N match) with progress reporting
      * 
      * Captures a fingerprint once and compares it against all provided templates.
+     * IMPORTANT: This accepts ALL templates (all fingers), not just one per user.
      * 
-     * @param userTemplates Map of UserID -> TemplateData
+     * @param templates Vector of pairs: (userId, templateData) - supports multiple fingers per user
+     * @param[out] matchedIndex Index of the matched template in the input vector, or -1 if no match
      * @param[out] score Match score of the best match
      * @param progressCallback Optional callback for reporting identification progress (current, total)
      * @param checkCancelCallback Optional callback to check if operation should be cancelled
-     * @return User ID of the match, or -1 if no match found or cancelled
+     * @return true if identification completed successfully (even if no match), false on error
      */
-    int identifyUser(const QMap<int, QByteArray>& userTemplates, int& score, 
+    bool identifyUser(const QVector<QPair<int, QByteArray>>& templates, int& matchedIndex, int& score,
                     std::function<void(int, int)> progressCallback = nullptr,
                     std::function<bool()> checkCancelCallback = nullptr);
     

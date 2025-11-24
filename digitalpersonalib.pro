@@ -20,9 +20,36 @@ DEFINES += DIGITALPERSONA_LIBRARY
 INCLUDEPATH += $$PWD/include
 
 # Linux settings
-unix:!macx {
+unix:!macx:!android {
     CONFIG += link_pkgconfig
     PKGCONFIG += libfprint-2 glib-2.0 gobject-2.0 gio-2.0
+}
+
+# Android settings
+android {
+    # Android NDK prefix (where libfprint was built)
+    ANDROID_PREFIX = $$PWD/../android-ndk-prefix
+    
+    # Link to libfprint and dependencies for Android
+    INCLUDEPATH += $$ANDROID_PREFIX/include \
+                   $$ANDROID_PREFIX/include/libfprint-2 \
+                   $$ANDROID_PREFIX/include/glib-2.0 \
+                   $$ANDROID_PREFIX/lib/glib-2.0/include \
+                   $$ANDROID_PREFIX/include/gusb-1 \
+                   $$ANDROID_PREFIX/include/libusb-1.0 \
+                   $$ANDROID_PREFIX/include/json-glib-1.0
+    
+    LIBS += -L$$ANDROID_PREFIX/lib \
+            -lfprint-2 \
+            -lglib-2.0 \
+            -lgobject-2.0 \
+            -lgio-2.0 \
+            -lgusb \
+            -lusb-1.0 \
+            -ljson-glib-1.0 \
+            -lffi \
+            -lssl \
+            -lcrypto
 }
 
 # macOS settings
